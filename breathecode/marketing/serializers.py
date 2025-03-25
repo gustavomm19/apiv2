@@ -444,6 +444,7 @@ class GetCourseSmallSerializer(serpy.Serializer):
 
 class GetCourseSerializer(GetCourseSmallSerializer):
     plan_slug = serpy.Field()
+    plan_meta = serpy.Field()
     syllabus = serpy.MethodField()
     academy = GetAcademySmallSerializer()
     cohort = serpy.MethodField()

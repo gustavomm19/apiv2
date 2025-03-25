@@ -64,6 +64,7 @@ def get_serializer(course, academy, syllabus=[], course_translation=None, cohort
         "cohort": cohort.id if cohort else None,
         "syllabus": [syllabus_serializer(x) for x in syllabus],
         "plan_slug": course.plan_slug,
+        "plan_meta": course.plan_meta,
         "is_listed": course.is_listed,
         "course_translation": course_translation,
         "banner_image": course.banner_image,

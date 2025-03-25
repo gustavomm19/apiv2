@@ -806,7 +806,14 @@ class Course(models.Model):
     cohort = models.ForeignKey(Cohort, null=True, blank=True, default=None, on_delete=models.CASCADE)
     is_listed = models.BooleanField(default=True, help_text="controls inclusion in browser listings and sitemaps")
 
-    plan_slug = models.SlugField(max_length=150, null=True, blank=True, default=None)
+    plan_slug = models.CharField(
+        max_length=150,
+        null=True,
+        blank=True,
+        default=None,
+        help_text="A list of comma separated plan slugs that this course belongs to",
+    )
+    plan_meta = models.JSONField(null=True, blank=True, default=None)
     status = models.CharField(max_length=15, choices=COURSE_STATUS, default=ACTIVE)
     color = models.CharField(
         max_length=50,
@@ -848,7 +855,25 @@ class Course(models.Model):
             raise Exception("Cohort must belong to the same academy")
 
     def save(self, *args, **kwargs):
+        from breathecode.payments.models import Plan
+
         self.full_clean()
+
+        # Update plan_meta when plan_slug changes
+        if self.plan_slug:
+            plan_slugs = [slug.strip() for slug in self.plan_slug.split(",")]
+            plan_meta = {}
+
+            # Get all plans with the given slugs
+            plans = Plan.objects.filter(slug__in=plan_slugs).select_related("owner", "owner__country")
+
+            # Build the plan_meta dictionary
+            for plan in plans:
+                if plan.owner and plan.owner.country:
+                    plan_meta[plan.owner.country.code] = {"slug": plan.slug}
+
+            self.plan_meta = plan_meta
+
         super().save(*args, **kwargs)
 
 
